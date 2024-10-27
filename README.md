@@ -32,7 +32,7 @@ By default, when a file name is clicked, print the filename. With the option `-c
 **Ubuntu 24.04**
 
 ```sh
-tree | picaf2 -
+tree | picaf2 - -tf -c 'wc {0}'
 ```
 
 ![](./images/screenshot-ubuntu.png)
