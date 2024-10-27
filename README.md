@@ -39,4 +39,5 @@ tree | picaf2 - -tf -c 'wc {0}'
 
 ## Changelog
 
+* v0.1.1 add `--types` option to specify file types.
 * v0.1.0 the first release.
