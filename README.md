@@ -1,5 +1,7 @@
 # picaf2
 
+![](./images/picaf2-mascot-q.png)
+
 `picaf2` (Pick-up a file) is a tool to generate a clickable map of files.
 
 Show the window that allows you to click filenames, from text containing file names.
