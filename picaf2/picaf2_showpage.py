@@ -56,7 +56,7 @@ def real_path(path_parts: List[str], base_dir: str) -> str:
         return os.path.abspath(os.path.join(base_dir, *path_parts))
 
 
-def path_check(path_like: str, base_dir: str) -> Optional[str]:
+def path_check(path_like: str, base_dir: str) -> Optional[Tuple[str, str]]:
     """
     Checks if the given path or a similar path exists.
 
@@ -65,13 +65,14 @@ def path_check(path_like: str, base_dir: str) -> Optional[str]:
         base_dir (str): The base directory to resolve relative paths.
 
     Returns:
-        Optional[str]: The actual path if found, otherwise None.
+        Optional[Tuple[str, str]]: The actual path and type ("d" or "f") of the path or None if it doesn't.
     """
     parts = path_like.split('/')
     while len(parts) > 0 and parts != [""]:
         p = real_path(parts, base_dir)
         if os.path.exists(p):
-            return "/".join(parts)
+            is_dir = os.path.isdir(p)
+            return "/".join(parts), "d" if is_dir else "f"
         else:
             last_part = parts.pop()
             if len(parts) > 0:
@@ -79,20 +80,21 @@ def path_check(path_like: str, base_dir: str) -> Optional[str]:
                 dirs, files = list_dirs_and_files(directory)
                 for f in files:
                     if last_part.startswith(f):
-                        return "/".join(parts + [f])
+                        return "/".join(parts + [f]), "f"
                 for d in dirs:
                     if last_part.startswith(d):
-                        return "/".join(parts + [d])
+                        return "/".join(parts + [d]), "d"
     return None
 
 
-def extract_filenames(text: str, base_dir: str) -> List[Tuple[int, int, str]]:
+def extract_filenames(text: str, base_dir: str, types=None) -> List[Tuple[int, int, str]]:
     """
     Extracts filenames or path-like strings from the text and checks their existence.
 
     Args:
         text (str): The input text from which to extract file names or paths.
         base_dir (str): The base directory to resolve relative paths.
+        types (str): Target file types. Either "d" (directories), "f" (files), or "df" (both of them).
 
     Returns:
         List[Tuple[int, int, str]]: A list of tuples where each tuple contains:
@@ -101,18 +103,20 @@ def extract_filenames(text: str, base_dir: str) -> List[Tuple[int, int, str]]:
             - The matched file or path string.
     """
     curdir_dirs, curdir_files = list_dirs_and_files(base_dir)
+    types = types or "df"
 
     found_path_poss = []
 
     # Check the presence of current directory files in the text
-    for filename in curdir_files:
-        pos = 0
-        while pos < len(text):
-            p = text.find(filename, pos)
-            if p < 0:
-                break  # while pos
-            found_path_poss.append((p, p + len(filename), filename))
-            pos = p + len(filename)
+    if "f" in types:
+        for filename in curdir_files:
+            pos = 0
+            while pos < len(text):
+                p = text.find(filename, pos)
+                if p < 0:
+                    break  # while pos
+                found_path_poss.append((p, p + len(filename), filename))
+                pos = p + len(filename)
 
     # Check for directory-like patterns (e.g., "../", "./", "/")
     for d in curdir_dirs + ["../", "./", "/"]:
@@ -133,8 +137,10 @@ def extract_filenames(text: str, base_dir: str) -> List[Tuple[int, int, str]]:
 
             path_exits = path_check(path_like, base_dir)
             if path_exits is not None:
-                assert text[p:p + len(path_exits)] == path_exits
-                found_path_poss.append((p, p + len(path_exits), path_exits))
+                file_path, file_type = path_exits
+                if file_type in types:
+                    assert text[p:p + len(file_path)] == file_path
+                    found_path_poss.append((p, p + len(file_path), file_path))
 
             pos = p + len(d)
 
@@ -152,8 +158,8 @@ def extract_filenames(text: str, base_dir: str) -> List[Tuple[int, int, str]]:
     return found_path_poss
 
 
-def setup_file_clickable_page(text, function_on_click):
-    path_poss = extract_filenames(text, os.getcwd())
+def setup_file_clickable_page(text, function_on_click, types=None):
+    path_poss = extract_filenames(text, os.getcwd(), types=types)
 
     nr_poss = []
     pos = 0
@@ -205,18 +211,20 @@ if not input_text:
     sys.exit("Error: no PICAF2_INPUT_TEXT")
 
 command = os.environ.get("PICAF2_COMMAND")
-if command:
+if command is not None:
     def on_click(file_path):
         os.system(command.replace("{0}", shlex.quote(file_path)))
 else:
     def on_click(file_path):
         print(shlex.quote(file_path))
 
+types = os.environ.get("PICAF2_TYPES")
+
 # @ui.page('/',title='index')
 # def index():
 #     ui.button('close', on_click=lambda : ui.run_javascript('window.open(location.href, "_self", "");window.close()'))
 
-setup_file_clickable_page(input_text, function_on_click=on_click)
+setup_file_clickable_page(input_text, on_click, types=types)
 
 ui.run(title="picaf2")
 

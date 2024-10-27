@@ -1,15 +1,20 @@
 [project]
 name = "picaf2"
-version = "0.1.0"
 description = "File-clickable text viewer"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "nicegui",
 ]
+version = "0.1.1"
 
 [tool.setuptools.packages.find]
 exclude = ["build", "tests", "dev-samples"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.386",
+]
 
 [project.scripts]
 picaf2 = "picaf2:main"

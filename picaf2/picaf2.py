@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 
+from .version import __version__
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -11,8 +12,9 @@ def main():
     parser = argparse.ArgumentParser(description='Show text as file-clickable page.')
 
     parser.add_argument('input_file', type=str, help='The input file including file paths.')
-    parser.add_argument('-c', '--command', type=str, help='The command applied when file clicked')
-    parser.add_argument('--version', action='version', version='picaf2 1.0')
+    parser.add_argument('-c', '--command', type=str, help='Command line for the clicked file. "{0}" as a place holder to put a file name.')
+    parser.add_argument('-t', '--types', type=str, help='File type(s). "f": file, "d": directory, "fd": both file and directory.')
+    parser.add_argument("--version", action="version", version=__version__, help="Show the version number and exit.")
 
     args = parser.parse_args()
 
@@ -26,6 +28,12 @@ def main():
 
     if args.command:
         os.environ['PICAF2_COMMAND'] = args.command
+
+    if args.types:
+        type_strs = "".join(sorted(set(args.types)))
+        if type_strs not in ['f', 'd', 'df']:
+            parser.error('Invalid --types value: {}'.format(args.types))
+        os.environ['PICAF2_TYPES'] = type_strs
 
     subprocess.run([sys.executable, os.path.join(script_dir, "picaf2_showpage.py")])
 

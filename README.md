@@ -24,6 +24,7 @@ By default, when a file name is clicked, print the filename. With the option `-c
 
 ```
 -c COMMAND, --command=COMMAND     Command line for the clicked file. `{0}` is a place holder to put a file name.
+-t TYPES, --types=TYPES           File type(s). "f": file, "d": directory, "fd": both file and directory.
 ```
 
 ### Example of Use/Screenshots
