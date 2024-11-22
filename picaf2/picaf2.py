@@ -14,6 +14,7 @@ def main():
     parser.add_argument('input_file', type=str, help='The input file including file paths.')
     parser.add_argument('-c', '--command', type=str, help='Command line for the clicked file. "{0}" as a place holder to put a file name.')
     parser.add_argument('-t', '--types', type=str, help='File type(s). "f": file, "d": directory, "fd": both file and directory.')
+    parser.add_argument('-d', '--done-mark', action="store_true", help='Add check mark to the file name when clicked.')
     parser.add_argument("--version", action="version", version=__version__, help="Show the version number and exit.")
 
     args = parser.parse_args()
@@ -34,6 +35,9 @@ def main():
         if type_strs not in ['f', 'd', 'df']:
             parser.error('Invalid --types value: {}'.format(args.types))
         os.environ['PICAF2_TYPES'] = type_strs
+
+    if args.done_mark:
+        os.environ['PICAF2_DONE_MARK'] = "1"
 
     subprocess.run([sys.executable, os.path.join(script_dir, "picaf2_showpage.py")])
 

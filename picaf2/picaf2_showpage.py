@@ -158,7 +158,25 @@ def extract_filenames(text: str, base_dir: str, types=None) -> List[Tuple[int, i
     return found_path_poss
 
 
-def setup_file_clickable_page(text, function_on_click, types=None):
+def setup_file_clickable_page(text, function_on_click, types=None, done_mark=False):
+    default_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0;"
+    chip_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0 1;"
+    done_mark = "✔ "
+
+    if done_mark:
+        def on_click(e):
+            chip = e.sender
+            file_path = str(chip.text)
+            if file_path.startswith(done_mark):
+                file_path = file_path[len(done_mark):]
+            function_on_click(file_path)
+            chip.text = done_mark + file_path
+    else:
+        def on_click(e):
+            chip = e.sender
+            file_path = str(chip.text)
+            function_on_click(file_path)
+
     path_poss = extract_filenames(text, os.getcwd(), types=types)
 
     nr_poss = []
@@ -187,10 +205,10 @@ def setup_file_clickable_page(text, function_on_click, types=None):
         text_segments.append(text[b:e])
         pos  = e
 
-    with nicegui.html.div().style("font-family: monospace; font-size: 12pt; margin: 0; padding: 0;"):
+    with nicegui.html.div().style(default_style):
         segment_index = 0
         while segment_index < len(text_segments):
-            with ui.row().style("font-family: monospace; font-size: 12pt; margin: 0; padding: 0;"):
+            with ui.row().style(default_style):
                 while segment_index < len(text_segments):
                     text = text_segments[segment_index]
                     is_special = segment_index % 2 == 1
@@ -199,10 +217,10 @@ def setup_file_clickable_page(text, function_on_click, types=None):
                         if text == "\n":
                             break  # while segment_index
                         else:
-                            ui.chip(text, on_click=lambda e: function_on_click(str(e.sender.text)), color="#eeeeee").props('square').style("font-family: monospace; font-size: 12pt; margin: 0; padding: 0 1;")
+                            ui.chip(text, on_click=on_click, color="silver").props('square').style(chip_style)
                     else:
                         text = html.escape(text).replace(" ", "&nbsp;")
-                        ui.html(text).style("font-family: monospace; font-size: 12pt; margin: 0; padding: 0;")
+                        ui.html(text).style(default_style)
 
 
 input_text = os.environ.get("PICAF2_INPUT_TEXT")
@@ -220,11 +238,13 @@ else:
 
 types = os.environ.get("PICAF2_TYPES")
 
+done_mark = os.environ.get("PICAF2_DONE_MARK") is not None
+
 # @ui.page('/',title='index')
 # def index():
 #     ui.button('close', on_click=lambda : ui.run_javascript('window.open(location.href, "_self", "");window.close()'))
 
-setup_file_clickable_page(input_text, on_click, types=types)
+setup_file_clickable_page(input_text, on_click, types=types, done_mark=done_mark)
 
 ui.run(title="picaf2")
 
