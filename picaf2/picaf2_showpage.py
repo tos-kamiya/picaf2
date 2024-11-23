@@ -161,7 +161,7 @@ def extract_filenames(text: str, base_dir: str, types=None) -> List[Tuple[int, i
 def setup_file_clickable_page(text, function_on_click, types=None, done_mark=False):
     default_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0;"
     chip_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0 1;"
-    done_mark = "✔ "
+    done_mark = "\u200b✔ "
 
     if done_mark:
         def on_click(e):
