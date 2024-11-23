@@ -36,8 +36,7 @@ def main():
             parser.error('Invalid --types value: {}'.format(args.types))
         os.environ['PICAF2_TYPES'] = type_strs
 
-    if args.done_mark:
-        os.environ['PICAF2_DONE_MARK'] = "1"
+    os.environ['PICAF2_DONE_MARK'] = "1" if args.done_mark else "0"
 
     subprocess.run([sys.executable, os.path.join(script_dir, "picaf2_showpage.py")])
 

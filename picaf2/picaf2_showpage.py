@@ -173,16 +173,16 @@ def extract_filenames(text: str, base_dir: str, types=None) -> List[Tuple[int, i
 def setup_file_clickable_page(text, function_on_click, types=None, done_mark=False):
     default_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0;"
     chip_style = "font-family: monospace; font-size: 12pt; margin: 0; padding: 0 1;"
-    done_mark = "\u200b✔ "
+    done_mark_str = "\u200b✔ "
 
     if done_mark:
         def on_click(e):
             chip = e.sender
             file_path = str(chip.text)
-            if file_path.startswith(done_mark):
-                file_path = file_path[len(done_mark):]
+            if file_path.startswith(done_mark_str):
+                file_path = file_path[len(done_mark_str):]
             function_on_click(file_path)
-            chip.text = done_mark + file_path
+            chip.text = done_mark_str + file_path
     else:
         def on_click(e):
             chip = e.sender
@@ -250,7 +250,7 @@ else:
 
 types = os.environ.get("PICAF2_TYPES")
 
-done_mark = os.environ.get("PICAF2_DONE_MARK") is not None
+done_mark = int(os.environ.get("PICAF2_DONE_MARK", "0"))
 
 # @ui.page('/',title='index')
 # def index():
