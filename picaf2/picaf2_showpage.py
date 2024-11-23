@@ -24,6 +24,8 @@ def list_dirs_and_files(directory: str) -> Tuple[List[str], List[str]]:
     """
     if directory == "":
         directory = "/"
+    if not (os.path.exists(directory) and os.path.isdir(directory)):
+        return [], []
     dirs_and_files = os.listdir(directory)
     dirs = []
     files = []
@@ -49,8 +51,14 @@ def real_path(path_parts: List[str], base_dir: str) -> str:
     Returns:
         str: The resolved absolute path.
     """
+
+    assert len(path_parts) > 0
+
+    if path_parts[0] == "~":
+        path_parts = [os.path.expanduser("~")] + path_parts[1:]
+
     if path_parts[0] == "":  # absolute path
-        return "/".join(path_parts)
+        return "/" + "/".join(path_parts)
     else:
         # make it relative to the base dir
         return os.path.abspath(os.path.join(base_dir, *path_parts))
@@ -118,17 +126,21 @@ def extract_filenames(text: str, base_dir: str, types=None) -> List[Tuple[int, i
                 found_path_poss.append((p, p + len(filename), filename))
                 pos = p + len(filename)
 
-    # Check for directory-like patterns (e.g., "../", "./", "/")
-    for d in curdir_dirs + ["../", "./", "/"]:
+    # Check for directory-like patterns (e.g., "../", "./", "/", "~/")
+    for d in curdir_dirs + ["../", "./", "/", "~/"]:
         pos = 0
         while pos < len(text):
             p = text.find(d, pos)
             if p < 0:
                 break  # while pos
 
-            if p > 0 and (d.startswith(".") or d.startswith("/")) and text[p - 1] == ".":
+            if p > 0 and d[0:1] in [".", "/", "~"] and text[p - 1] in [".", "/", "~"]:
                 pos += p + len(d)
-                continue   # while pos
+                continue  # while pos
+
+            if text[p:p + 2] in ["//", "~~"]:
+                pos += 2
+                continue  # while pos
 
             q = text.find("\n", p + 1)
             if q < 0:

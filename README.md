@@ -41,6 +41,7 @@ tree | picaf2 - -tf -c 'wc {0}'
 
 ## Changelog
 
+* v0.2.1 fix to recognize "~/" as a directory.
 * v0.2.0 add `--done-mark' option for marking a file as done when clicked.
 * v0.1.1 add `--types` option to specify file types.
 * v0.1.0 the first release.
